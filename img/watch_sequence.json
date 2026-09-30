@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "CAN 变量观察读写时序（上位机 ↔ 演示固件）",
+    "output": "img/watch_sequence.html",
+    "viewBox": [
+      1060,
+      600
+    ],
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "host",
+      "type": "external",
+      "label": "上位机",
+      "sublabel": "WATCH 页"
+    },
+    {
+      "id": "fw",
+      "type": "backend",
+      "label": "演示固件",
+      "sublabel": "cmd 0x30~0x35"
+    }
+  ],
+  "segments": [
+    {
+      "from": 140,
+      "to": 260,
+      "label": "连接校验"
+    },
+    {
+      "from": 270,
+      "to": 380,
+      "label": "周期观察"
+    },
+    {
+      "from": 392,
+      "to": 530,
+      "label": "行内写入"
+    }
+  ],
+  "messages": [
+    {
+      "id": "probe",
+      "from": "host",
+      "to": "fw",
+      "y": 165,
+      "label": "0x20 状态查询",
+      "variant": "default"
+    },
+    {
+      "id": "probe-rsp",
+      "from": "fw",
+      "to": "host",
+      "y": 195,
+      "label": "B6 bit0=1 调试命令组已编译",
+      "variant": "return"
+    },
+    {
+      "id": "crc",
+      "from": "host",
+      "to": "fw",
+      "y": 235,
+      "label": "0x35 CRC 校验（固件区，单帧）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "crc-rsp",
+      "from": "fw",
+      "to": "host",
+      "y": 265,
+      "label": "CRC32（与 .out 镜像比对）",
+      "variant": "return"
+    },
+    {
+      "id": "rd-start",
+      "from": "host",
+      "to": "fw",
+      "y": 305,
+      "label": "0x30 读开始（地址 + 字数）",
+      "variant": "default"
+    },
+    {
+      "id": "rd-data",
+      "from": "fw",
+      "to": "host",
+      "y": 335,
+      "label": "0x31 读数据（7 字节/帧流式）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rd-more",
+      "from": "fw",
+      "to": "host",
+      "y": 365,
+      "label": "0x31 …直至读满",
+      "variant": "dashed"
+    },
+    {
+      "id": "wr-start",
+      "from": "host",
+      "to": "fw",
+      "y": 405,
+      "label": "0x32 写开始（1~4 字）",
+      "variant": "default"
+    },
+    {
+      "id": "wr-data",
+      "from": "host",
+      "to": "fw",
+      "y": 435,
+      "label": "0x33 写数据",
+      "variant": "default"
+    },
+    {
+      "id": "wr-reply",
+      "from": "fw",
+      "to": "host",
+      "y": 465,
+      "label": "0x34 写应答（状态码）",
+      "variant": "return"
+    },
+    {
+      "id": "wr-more",
+      "from": "host",
+      "to": "fw",
+      "y": 497,
+      "label": "继续观察，值实时更新",
+      "variant": "dashed"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "fw",
+      "from": 160,
+      "to": 505,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "先校验再观察",
+      "items": [
+        "0x35 单帧拿到固件区 CRC32，与 .out 镜像比对",
+        "一致才允许观察与写入，不一致整页拒绝"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "读事务",
+      "items": [
+        "快照模式受理时关中断整块拷贝，读数是同一时刻的原子快照",
+        "相邻地址合并进同一读请求，节省总线"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "写事务",
+      "items": [
+        "0x32 受理即校验字数与地址，非法立即回 0x34 拒绝",
+        "写入关中断进行，Flash 区一律拒绝",
+        "帧带序号，残帧由上位机按序号过滤"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# CCS 构建产物
+*.obj
+*.d
+*.map
+*.linkInfo.xml
+*.out
+Flash/
+Debug/
+Release/
+.settings/
+.launches/
+*.launch
+dvt/
+RemoteSystemsTempFiles/
+# 随仓库分发的演示固件例外
+!demo/*.out

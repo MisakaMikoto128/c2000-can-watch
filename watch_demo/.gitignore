@@ -1,0 +1,8 @@
+# CCS 构建产物
+*.obj
+*.map
+*.linkInfo.xml
+*.out
+.settings/
+.launches/
+*.launch
